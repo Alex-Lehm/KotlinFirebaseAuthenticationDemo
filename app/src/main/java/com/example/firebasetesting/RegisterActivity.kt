@@ -39,8 +39,7 @@ class RegisterActivity : AppCompatActivity() {
                         Log.d("TAG", "createUserWithEmail:success")
 
                         val newUser = User(editName.text.toString(),
-                            editEmail.text.toString(),
-                            editPassword.text.toString())
+                            editEmail.text.toString())
 
                         Toast.makeText(this, "Updating database...", Toast.LENGTH_SHORT).
                             show()
