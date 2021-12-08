@@ -11,4 +11,6 @@
     <string name="your_email_address">Your Email Address:</string>
     <string name="welcome">Welcome,</string>
     <string name="register">Register</string>
+    <string name="user_area">User Area</string>
+    <string name="admin_area">Admin Area</string>
 </resources>
