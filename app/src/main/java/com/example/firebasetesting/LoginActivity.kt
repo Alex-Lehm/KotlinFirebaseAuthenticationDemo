@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -15,11 +16,15 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 
-
+/**
+ * Class to handle the login page logic. Can redirect to the registration page, or to the user
+ * area if already logged in.
+ */
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var dbRealtime: FirebaseDatabase
+    private lateinit var dbOperations: DatabaseOperations
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,19 +42,29 @@ class LoginActivity : AppCompatActivity() {
         val btnGoToRegister: Button = findViewById(R.id.btnGoToRegister)
 
         btnSubmit.setOnClickListener {
-            auth.signInWithEmailAndPassword(editEmail.text.toString(),
-                editPassword.text.toString()).addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        Log.d("TAG", "signInWithEmail:success")
-                        Toast.makeText(this, "Logged in with ${auth.currentUser?.email}",
-                            Toast.LENGTH_LONG).show()
+            auth.signInWithEmailAndPassword(
+                editEmail.text.toString(),
+                editPassword.text.toString()
+            ).addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    Log.d("TAG", "signInWithEmail:success")
+                    Toast.makeText(
+                        this, "Logged in with ${auth.currentUser?.email}",
+                        Toast.LENGTH_LONG
+                    ).show()
 
-                        println(auth.currentUser!!.uid)
-                        loadLoggedInUI(auth.currentUser!!.uid)
+                    println(auth.currentUser!!.uid)
+                    loadLoggedInUI(auth.currentUser!!.uid)
 
-                    } else {
-                        Log.d("TAG", "signInWithEmail:failure")
+                } else {
+                    Log.d("TAG", "signInWithEmail:failure", task.exception)
+                    if (task.exception is FirebaseAuthInvalidCredentialsException) {
+                        Toast.makeText(
+                            this, "Incorrect email or password",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
+                }
             }
         }
 
@@ -79,6 +94,7 @@ class LoginActivity : AppCompatActivity() {
 
                 user.name = snapshot.child("${userID}/name").value as String
                 user.email = snapshot.child("${userID}/email").value as String
+                user.role=snapshot.child("${userID}/role").value as String
 
                 val intent = Intent(this@LoginActivity, MainActivity::class.java)
                 val bundle = Bundle()
