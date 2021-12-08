@@ -12,6 +12,10 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
 
+/**
+ * Class to handle the registration page logic. Can redirect to the login page, or to the user
+ * area if already logged in.
+ */
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
@@ -24,8 +28,11 @@ class RegisterActivity : AppCompatActivity() {
         auth = Firebase.auth
 
         //TODO: your DB URL here
-        dbRealtime = FirebaseDatabase.getInstance()
+        dbRealtime = FirebaseDatabase.getInstance(
+            "https://testing-a8b55-default-rtdb.europe-west1.firebasedatabase.app/"
+        )
 
+        // get all relevant components
         val editName: EditText = findViewById(R.id.editRegisterName)
         val editEmail: EditText = findViewById(R.id.editRegisterEmail)
         val editPassword: EditText = findViewById(R.id.editRegisterPassword)
@@ -33,43 +40,54 @@ class RegisterActivity : AppCompatActivity() {
         val btnGoToLogin: Button = findViewById(R.id.btnGoToLogin)
 
         btnSubmit.setOnClickListener {
-            auth.createUserWithEmailAndPassword(editEmail.text.toString(),
-                editPassword.text.toString()).addOnCompleteListener(this) {task ->
-                    if (task.isSuccessful) {
-                        Log.d("TAG", "createUserWithEmail:success")
+            // create account with Firebase and an event to be triggered
+            auth.createUserWithEmailAndPassword(
+                editEmail.text.toString(),
+                editPassword.text.toString()
+            ).addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    Log.d("TAG", "createUserWithEmail:success")
 
-                        val newUser = User(editName.text.toString(),
-                            editEmail.text.toString())
+                    val newUser = User(
+                        editName.text.toString(),
+                        editEmail.text.toString(),
+                        Roles.USER.toString()
+                    )
 
-                        Toast.makeText(this, "Updating database...", Toast.LENGTH_SHORT).
-                            show()
-                        val dbReference =
-                            auth.currentUser?.uid?.let { it1 ->
-                                dbRealtime.getReference("Users").child(it1).setValue(newUser).
-                                    addOnCompleteListener(this) {task ->
-                                        if(task.isSuccessful) {
-                                            Log.d("TAG", "addUserClassToDB:success")
-                                        } else {
-                                            Log.d("TAG", "addUserClassToDB:failure")
-                                            Toast.makeText(this,
-                                                "We hit a snag... Try again",
-                                                Toast.LENGTH_LONG).show()
-                                        }
-                                    }
+                    Toast.makeText(this, "Updating database...", Toast.LENGTH_SHORT).show()
+
+                    auth.currentUser?.uid?.let { it1 ->
+                        dbRealtime.getReference("Users").child(it1).setValue(newUser)
+                            .addOnCompleteListener(this) { task ->
+                                if (task.isSuccessful) {
+                                    Log.d("TAG", "addUserClassToDB:success")
+                                } else {
+                                    Log.d("TAG", "addUserClassToDB:failure")
+                                    Toast.makeText(
+                                        this,
+                                        "We hit a snag... Try again",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
                             }
-
-                        val toast: Toast = Toast.makeText(this,
-                            "Whoop whoop! Account created!", Toast.LENGTH_SHORT)
-                        toast.show()
-
-                        loadNewLoggedInUserUI(newUser)
-
-                    } else {
-                        Log.w("TAG", "createUserWithEmail:failure", task.exception)
-                        val toast: Toast = Toast.makeText(this,
-                            "Aw, authentication failed", Toast.LENGTH_LONG)
-                        toast.show()
                     }
+
+                    val toast: Toast = Toast.makeText(
+                        this,
+                        "Whoop whoop! Account created!", Toast.LENGTH_SHORT
+                    )
+                    toast.show()
+
+                    loadNewLoggedInUserUI(newUser)
+
+                } else {
+                    Log.w("TAG", "createUserWithEmail:failure", task.exception)
+                    val toast: Toast = Toast.makeText(
+                        this,
+                        "Aw, authentication failed", Toast.LENGTH_LONG
+                    )
+                    toast.show()
+                }
             }
         }
 
@@ -84,8 +102,10 @@ class RegisterActivity : AppCompatActivity() {
         val currentUser = auth.currentUser
 
         if (currentUser != null) {
-            Toast.makeText(this,
-                "Already logged in!", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "Already logged in!", Toast.LENGTH_LONG
+            ).show()
             loadExistingLoggedInUI()
         }
     }
