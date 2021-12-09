@@ -12,10 +12,6 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
 
-/**
- * Class to handle the registration page logic. Can redirect to the login page, or to the user
- * area if already logged in.
- */
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
@@ -28,11 +24,8 @@ class RegisterActivity : AppCompatActivity() {
         auth = Firebase.auth
 
         //TODO: your DB URL here
-        dbRealtime = FirebaseDatabase.getInstance(
-            "https://testing-a8b55-default-rtdb.europe-west1.firebasedatabase.app/"
-        )
+        dbRealtime = FirebaseDatabase.getInstance()
 
-        // get all relevant components
         val editName: EditText = findViewById(R.id.editRegisterName)
         val editEmail: EditText = findViewById(R.id.editRegisterEmail)
         val editPassword: EditText = findViewById(R.id.editRegisterPassword)
@@ -40,7 +33,6 @@ class RegisterActivity : AppCompatActivity() {
         val btnGoToLogin: Button = findViewById(R.id.btnGoToLogin)
 
         btnSubmit.setOnClickListener {
-            // create account with Firebase and an event to be triggered
             auth.createUserWithEmailAndPassword(
                 editEmail.text.toString(),
                 editPassword.text.toString()
